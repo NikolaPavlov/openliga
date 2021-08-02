@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>win_loss_ratio.html</h1>
+    {% for key, value in statistic.items %}
+        {% for k,v in value.items %}
+            <p>{{k}}:{{v}}</p>
+        {% endfor %}
+        <hr>
+    {% endfor %}
+{% endblock %}

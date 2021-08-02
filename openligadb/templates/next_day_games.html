@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>next day games</h1>
+    {% for game in next_day_games %}
+        {{ game }}
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>all_games.html</h1>
+
+    {{ all_match_days }}
+
+    <br>
+    {% for game in all_games %}
+        <!-- {{ game }} -->
+        {{ game.MatchID }} |
+        {{ game.MatchDateTimeUTC }} |
+        {{ game.Team1.TeamName }} |
+        {{ game.Team2.TeamName }} |
+        {{ game.MatchResults.0.PointsTeam1 }}:{{game.MatchResults.0.PointsTeam2}}
+        <hr>
+        <br>
+    {% endfor %}
+{% endblock %}
