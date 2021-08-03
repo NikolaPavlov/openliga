@@ -81,8 +81,14 @@ def win_loss_ratio(request):
             pass
 
     for k,v in statistic.items():
-        print('ratio' + str(v['wins'] / v['loss']))
-        statistic[k]['win_ratio'] = v['wins'] / v['loss']
+        ratio = v['wins'] / v['loss']
+        statistic[k]['win_ratio'] = str(round(ratio, 2))
 
-    context = {'statistic': statistic}
+    statistic_sorted = _sorter(statistic)
+    print(statistic_sorted)
+
+    context = {'statistic': statistic_sorted}
     return render(request, 'win_loss_ratio.html' , context)
+
+def _sorter(d):
+    return sorted(d.items(), key=lambda x: x[1]['win_ratio'], reverse=True)

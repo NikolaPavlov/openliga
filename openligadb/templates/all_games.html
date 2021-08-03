@@ -1,19 +1,22 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>all_games.html</h1>
-
-    {{ all_match_days }}
-
-    <br>
-    {% for game in all_games %}
-        <!-- {{ game }} -->
-        {{ game.MatchID }} |
-        {{ game.MatchDateTimeUTC }} |
-        {{ game.Team1.TeamName }} |
-        {{ game.Team2.TeamName }} |
-        {{ game.MatchResults.0.PointsTeam1 }}:{{game.MatchResults.0.PointsTeam2}}
-        <hr>
-        <br>
-    {% endfor %}
+    <table class="table table-dark">
+        <thead>
+            <th>Date</th>
+            <th>HomeTeam</th>
+            <th>AwayTeam</th>
+            <th>Result</th>
+        </thead>
+        <tbody>
+            {% for game in all_games %}
+                <tr>
+                <th>{{ game.MatchDateTimeUTC | slice:"0:10" }}</th>
+                <th>{{ game.Team1.TeamName }}</th>
+                <th>{{ game.MatchResults.0.PointsTeam1 }}:{{game.MatchResults.0.PointsTeam2}}</th>
+                <th>{{ game.Team2.TeamName }}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
