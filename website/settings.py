@@ -124,3 +124,9 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# openligadb settings
+API_URL = 'https://www.openligadb.de/api'
+LEAGUE = 'bl1'
+SEASON = '2021'
