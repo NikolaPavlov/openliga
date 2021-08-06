@@ -1,18 +1,20 @@
 import requests
 
+from django.conf import settings
+
 
 class OpenLigaSDK:
     def __init__(self):
-        self.URL = 'https://www.openligadb.de/api/'
-
-        self.league = 'bl1'
-        self.season = '2020'
+        pass
 
     def get_all_games(self):
-        response = requests.get(self.URL + 'getmatchdata' + '/' + self.league + '/' + self.season)
+        response = requests.get(settings.API_URL + '/' + 'getmatchdata' + '/' + settings.LEAGUE + '/' + settings.SEASON)
         return response.json()
 
     def get_all_teams(self):
-        response = requests.get('https://www.openligadb.de/api/' + 'getavailableteams' + '/' + self.league + '/' + self.season)
-        print(response.json())
+        response = requests.get(settings.API_URL + '/' + 'getavailableteams' + '/' + settings.LEAGUE + '/' + settings.SEASON)
+        return response.json()
+
+    def get_all_stats(self):
+        response = requests.get(settings.API_URL + '/' + 'getbltable' + '/' + settings.LEAGUE + '/' + settings.SEASON)
         return response.json()

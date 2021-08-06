@@ -1,94 +1,139 @@
 import datetime
 import dateutil.parser
 
+from django.conf import settings
 from django.shortcuts import render
+from django.utils import timezone
 
 from . import services
 
 
 def index(request):
-    return render(request, 'index.html' )
-
-def all_games(request):
     sdk = services.OpenLigaSDK()
     all_games = sdk.get_all_games()
+    next_games = _get_next_game_day()
 
-    context = {'all_games' : all_games}
-    return render(request, 'all_games.html', context)
+    context = {
+       'all_games' : all_games,
+       'next_games': next_games,
+    }
+    return render(request, 'index.html', context)
 
-def next_day_games(request):
-    sdk = services.OpenLigaSDK()
-    all_games = sdk.get_all_games()
-
-    next_day_games = []
-    for game in all_games:
-        # next_day_games.append(game['MatchDateTimeUTC'])
-        dt_str = game['MatchDateTimeUTC']
-        dt_iso = dateutil.parser.isoparse(dt_str)
-        dt_game = datetime.date(dt_iso.year, dt_iso.month, dt_iso.day)
-        # print('dt_game: ' + str(dt_game))
-        # dt_today = datetime.date.today()
-        dt_today = datetime.date(2021, 8, 13)
-        # print('today: ' + str(dt_today))
-        dt_tomorrow = dt_today + datetime.timedelta(days = 1)
-        # print('dt_tomorrow: ' + str(dt_tomorrow))
-
-        if dt_game == dt_tomorrow:
-            next_day_games.append(game)
-
-    context = {'next_day_games': next_day_games}
-    return render(request, 'next_day_games.html', context)
-
-def next_game_day(request):
-    # Next upcoming matches (following Gameday)
-    pass
 
 def win_loss_ratio(request):
-    # get_all_teams
+    sdk = services.OpenLigaSDK()
+    all_stats = sdk.get_all_stats()
+
+    for s in all_stats:
+        s['win_loss'] = _get_ratio(s['Won'], s['Lost'])
+
+    context = { 'statistic': all_stats }
+
+    return render(request, 'win_loss_ratio.html', context)
+
+
+def team_search(request):
+    if 'q' in request.GET:
+        team_name = str(request.GET['q'])
+        if team_name is not None:
+            if _is_team_in_league(team_name):
+                next_game = _get_team_next_game(team_name)
+                all_games_of_team = _get_team_season_matches(team_name)
+
+                team_stats = _get_team_stats(team_name)
+                team_stats['win_loss'] = _get_ratio(team_stats['Won'], team_stats['Lost'])
+
+                context = {
+                    'next_game': next_game,
+                    'all_games_of_team': all_games_of_team,
+                    'team_stats': team_stats,
+                    'season': settings.SEASON,
+                }
+            else:
+                err_msg = "['%s'] is not in the league" % team_name
+                context = { 'err_msg': err_msg }
+            return render(request, 'team_search.html', context)
+    return render(request, 'team_search.html')
+
+
+def _get_next_game_day():
+    sdk = services.OpenLigaSDK()
+    all_games = sdk.get_all_games()
+
+    first_dt_str = all_games[0]['MatchDateTimeUTC']
+    first_date = _dt_str_to_iso(first_dt_str)
+    now = timezone.now().date()
+
+    if now > first_date:
+        return None
+
+    next_games = []
+    for game in all_games:
+        game_date = _dt_str_to_iso(game['MatchDateTimeUTC'])
+        if game_date == first_date:
+            next_games.append(game)
+
+    return next_games
+
+
+def _dt_str_to_iso(date):
+    date_iso = dateutil.parser.isoparse(date)
+    date_strip = datetime.date(date_iso.year, date_iso.month, date_iso.day)
+    return date_strip
+
+
+def _is_team_in_league(team):
     sdk = services.OpenLigaSDK()
     all_teams = sdk.get_all_teams()
 
-    statistic = dict()
-    for team in all_teams:
-        statistic[team['TeamId']] = {
-            'team_name': team['TeamName'],
-            'wins': 0,
-            'loss': 0,
-        }
+    all_team_names = []
+    for t in all_teams:
+        all_team_names.append( (t['TeamName']).lower() )
 
-    # get_all_matches
+    if team.lower() in all_team_names:
+        return True
+    return False
+
+
+def _get_team_next_game(team_name):
+    sdk = services.OpenLigaSDK()
     all_games = sdk.get_all_games()
+
     for game in all_games:
-        if not game['MatchIsFinished']:
-            continue
+        team1_name = game['Team1']['TeamName']
+        team2_name = game['Team2']['TeamName']
+        if team1_name == team_name or team2_name == team_name:
+            if game['MatchIsFinished']:
+                continue
+            return game
+    return None
 
-        team1_id = game['Team1']['TeamId']
-        team2_id = game['Team2']['TeamId']
 
-        if game['MatchResults']:
-            team1_goals = int(game['MatchResults'][0]['PointsTeam1'])
-            team2_goals = int(game['MatchResults'][0]['PointsTeam2'])
+def _get_team_season_matches(team_name):
+    sdk = services.OpenLigaSDK()
+    all_games = sdk.get_all_games()
 
-            if team1_goals > team2_goals:
-                statistic[team1_id]['wins'] += 1
-                statistic[team2_id]['loss'] += 1
-            elif team1_goals < team2_goals:
-                statistic[team1_id]['loss'] += 1
-                statistic[team2_id]['wins'] += 1
-            else:
-                pass
-        else:
-            pass
+    all_games_of_team = []
+    for game in all_games:
+        team1_name = game['Team1']['TeamName']
+        team2_name = game['Team2']['TeamName']
+        if team1_name == team_name or team2_name == team_name:
+            all_games_of_team.append(game)
+    return all_games_of_team
 
-    for k,v in statistic.items():
-        ratio = v['wins'] / v['loss']
-        statistic[k]['win_ratio'] = str(round(ratio, 2))
 
-    statistic_sorted = _sorter(statistic)
-    print(statistic_sorted)
+def _get_team_stats(team_name):
+    sdk = services.OpenLigaSDK()
+    all_stats = sdk.get_all_stats()
 
-    context = {'statistic': statistic_sorted}
-    return render(request, 'win_loss_ratio.html' , context)
+    for stats in all_stats:
+        if stats['TeamName'] == team_name:
+            return stats
+    return None
 
-def _sorter(d):
-    return sorted(d.items(), key=lambda x: x[1]['win_ratio'], reverse=True)
+
+def _get_ratio(win, loss):
+    if loss == 0:
+        return int(win)
+    else:
+        return round(float(win / loss), 2)
