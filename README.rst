@@ -1,17 +1,9 @@
-TODO:
------
-
-* better search for team  (Elastic Search)
-* caching  api requests
-* pagination in the index.html
-* deploy to Vagran Target with Ansible
-
-* add tests
-* improve code quality
-
-
 How to run
 ==========
 
+* ``docker-compose up -d`` run in background
+* ``docker-compose up --build`` run in foreground
+* ``docker network ls`` view network
+* ``docker-compose down`` stop the process
 
-pmr
+open localhost:80

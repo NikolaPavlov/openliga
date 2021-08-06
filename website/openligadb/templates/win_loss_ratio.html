@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class='bg-secondary' >Win Loss Statistic</h2>
+<table class="table table-dark">
+    <thead>
+        <tr>
+            <th>HomeTeam</th>
+            <th>Win</th>
+            <th>Loss</th>
+            <th>WinLoss Ratio</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in statistic %}
+        <tr>
+            <td>{{ s.TeamName }}</td>
+            <td>{{ s.Won }}</td>
+            <td>{{ s.Lost }}</td>
+            <td>{{ s.win_loss }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
