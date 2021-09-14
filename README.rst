@@ -4,12 +4,16 @@ TASK
 As an enduser I want to have a small website, which displays various data of Bundesliga games 
 using the JSON/XML API http://www.openligadb.de/
 (see https://bitbucket.org/anythingabout/openligadb-samples/overview/ ).
+
 Provide the following Information:
+
 * Next upcoming matches (following Gameday)
 * All matches of the actual season
 * Win/Loss Ratio of the actual season of each team
 * Optimized for different resolutions through a type and layout of your choice
+
 Bonus-Points:
+
 * A search functionality for a specific team displaying all the information above
 * Automated deployment script with fabric/ansible or the like. If you do so, deployment 
 Target should be a local Vagrantbox.
